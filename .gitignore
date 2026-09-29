@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Output / Build
+dist/
+tsconfig.build.tsbuildinfo
+
+# Database
+*.sqlite
+*.sqlite-journal
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
