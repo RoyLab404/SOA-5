@@ -1,169 +1,202 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="110" alt="NestJS Logo" /></a>
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="NestJS Logo" /></a>
 </p>
 
-<h1 align="center">StudyMate API</h1>
+<h1 align="center">NestJS RESTful API — StudyMate Service</h1>
 
 <p align="center">
-  RESTful API backend built with <b>NestJS</b> and <b>TypeScript</b>.<br/>
-  <i>Current Status: Environment Setup, Routing, Middleware & JWT Authentication (Lab 1 & Lab 2)</i>
+  A robust and scalable server-side application engineered with <b>NestJS</b>, <b>TypeScript</b>, and <b>RESTful Architecture</b>.<br/>
+  Featuring <b>Dependency Injection</b>, <b>Modular Design</b>, <b>Custom Middleware</b>, and <b>JWT Security</b>.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Node.js-%3E%3D22.x-339933?logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/NestJS-v12.0-EA2845?logo=nestjs&logoColor=white" alt="NestJS" />
-  <img src="https://img.shields.io/badge/TypeScript-v6.0-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white" alt="JWT" />
-  <img src="https://img.shields.io/badge/Test-Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
-  <img src="https://img.shields.io/badge/License-UNLICENSED-lightgrey" alt="License" />
+  <img src="https://img.shields.io/badge/NestJS-v12.0-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS Version" />
+  <img src="https://img.shields.io/badge/TypeScript-v6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Auth-JWT_Bearer-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT Auth" />
+  <img src="https://img.shields.io/badge/Testing-Vitest_%26_Supertest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
 </p>
 
 ---
 
-## 📖 Overview
+## 🏛️ NestJS Architecture & Core Concepts
 
-**StudyMate API** is the backend service for the *Smart Study Group & Room Booking System*. At the current stage of development, the project focuses on configuring the **NestJS** environment and implementing core RESTful concepts: **Controllers (Routing)**, **Services**, **Custom Middleware**, and **JWT-based Authentication**.
+This project is built from the ground up leveraging the foundational pillars of the **NestJS** framework:
+
+```text
+Incoming Request
+      │
+      ▼
+┌───────────────────────────────┐
+│        AuthMiddleware         │  ◄── Implements NestMiddleware (verifies Bearer JWT)
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│          Controllers          │  ◄── Declarative Routing (@Controller, @Get, @Post, @Body)
+│ (AppController / AuthController)
+└──────────────┬────────────────┘
+               │ (Dependency Injection via IoC Container)
+               ▼
+┌───────────────────────────────┐
+│      Providers / Services     │  ◄── Business Logic (@Injectable: AuthService, AppService)
+│   (AuthService / AppService)  │
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│        External Modules       │  ◄── Dynamic Module Registration (JwtModule.register())
+│          (JwtModule)          │
+└───────────────────────────────┘
+```
+
+### 1. Modules (`@Module`)
+- **`AppModule`**: The root module that orchestrates application dependencies and manages the global HTTP request lifecycle via `NestModule` and `MiddlewareConsumer`.
+- **`AuthModule`**: A feature module encapsulating authentication concerns, registering the dynamic `JwtModule`, and exporting `JwtModule` and `AuthMiddleware` for consumption across the app.
+
+### 2. Controllers & Routing (`@Controller`)
+- **`AppController`**: Exposes the root health check route (`GET /`).
+- **`AuthController`**: Declarative routing for user credentials verification (`POST /login` and `POST /`) and identity inspection (`GET /auth` & `POST /auth`).
+
+### 3. Providers & Dependency Injection (`@Injectable`)
+- Implements Inversion of Control (IoC). Dependencies like `JwtService` and `AuthService` are injected via class constructors, ensuring low coupling and high testability.
+
+### 4. Custom Middleware (`NestMiddleware`)
+- **`AuthMiddleware`**: Intercepts requests, validates the `Authorization: Bearer <token>` header against the secret key using `JwtService.verify()`, and injects the decoded payload into `req['user']`.
+- Configured conditionally in `AppModule.configure()` using `consumer.apply(AuthMiddleware).forRoutes(...)`.
+
+### 5. Built-in Exception Handling
+- Throws standard NestJS HTTP exceptions (`UnauthorizedException`) mapped directly to appropriate HTTP status codes (`401 Unauthorized`) with standardized error JSON schemas.
 
 ---
 
-## ✨ Implemented Features
+## 📦 NestJS Ecosystem & Packages
 
-- **🚀 RESTful API Foundation (Lab 1):**
-  - Initialized with **NestJS v12** and **TypeScript (ESM)**.
-  - Root endpoint (`GET /`) returning `"Hello World!"`.
-- **🔐 JWT Login Service (Lab 2):**
-  - `POST /login` endpoint that validates `userName` and client-hashed `password` (MD5) against the `User` data model (`IdUser`, `UserName`, `Password`, `Token`).
-  - Generates and signs a **JSON Web Token (JWT)** with a 1-hour expiration using `@nestjs/jwt`.
-- **🛡️ Custom Authentication Middleware (Lab 2):**
-  - `AuthMiddleware` intercepts incoming requests, extracts the `Authorization: Bearer <token>` header, verifies token integrity, and attaches the decoded payload to `req.user`.
-  - Applied to protect both `GET /` and `GET /auth`.
-- **✅ Token Verification Endpoint (Lab 2):**
-  - `GET /auth` endpoint returning the authenticated user payload decoded from the JWT.
-
----
-
-## 🛠 Tech Stack
-
-| Category | Technology |
+| Package | Purpose in Project |
 | :--- | :--- |
-| **Framework** | [NestJS v12](https://nestjs.com/) (`@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`) |
-| **Language** | [TypeScript v6](https://www.typescriptlang.org/) |
-| **Authentication** | `@nestjs/jwt` (JSON Web Token) |
-| **Testing** | Vitest, Supertest (`@nestjs/testing`) |
-| **Code Quality** | Oxlint, Prettier |
+| **`@nestjs/core`** | NestJS core runtime, IoC container, and application lifecycle engine |
+| **`@nestjs/common`** | Decorators (`@Module`, `@Controller`, `@Injectable`, `@Post`, `@Get`), HTTP abstractions, and exceptions |
+| **`@nestjs/platform-express`** | Default HTTP adapter binding NestJS with Express |
+| **`@nestjs/jwt`** | Official NestJS JWT utility wrapper around `jsonwebtoken` for signing and verifying tokens |
+| **`@nestjs/cli`** | Command-line interface for scaffolding, building, and serving the app |
+| **`@nestjs/testing`** | Utilities for bootstrapping isolated module fixtures during unit & E2E tests |
 
 ---
 
-## 📋 Prerequisites
+##  Project Structure (`src/`)
 
-Ensure the following tools are installed on your local machine:
-
-- **Node.js:** `>= 22.22.3` or `>= 24.x`
-- **npm:** `>= 10.x`
-- **Postman:** *(Recommended for testing API endpoints)*
+```text
+src/
+├── auth/                         # Feature Module: Authentication & JWT Security
+│   ├── auth.controller.ts        # Route handlers for login & token introspection
+│   ├── auth.middleware.ts        # Custom NestMiddleware verifying Bearer JWT
+│   ├── auth.module.ts            # Nest module importing dynamic JwtModule
+│   └── auth.service.ts           # Injectable provider handling credential checks & token signing
+├── app.controller.spec.ts        # Unit test fixture for AppController
+├── app.controller.ts             # Root controller exposing GET /
+├── app.module.ts                 # Root module configuring MiddlewareConsumer
+├── app.service.ts                # Injectable root service
+└── main.ts                       # Application bootstrapper via NestFactory.create()
+```
 
 ---
 
-## ⚙️ Installation & Configuration
+## ⚙️ Prerequisites & Setup
 
-### 1. Clone the repository & install dependencies
+### Requirements
+- **Node.js**: `>= 22.22.3` or `>= 24.x`
+- **npm**: `>= 10.x`
 
+### Installation
 ```bash
+# Clone the repository
 git clone <your-repository-url>
 cd Project
+
+# Install dependencies using npm
 npm install
 ```
 
-### 2. Environment Variables (`.env.example`)
-
-By default, the application runs on port `3000` with a preconfigured JWT secret. You can optionally create a `.env` file in the root directory:
-
-```dotenv
-PORT=3000
-JWT_SECRET=secret-key-12345
-JWT_EXPIRES_IN=1h
-```
-
 ---
 
-## 🚀 Running the Project
+## 🚀 NestJS CLI Commands
 
+### Development & Execution
 ```bash
-# Development mode
+# Start the NestJS application
 npm run start
 
-# Watch mode (auto-reload on file changes)
+# Start with Watch Mode (Hot-reload enabled via Nest CLI)
 npm run start:dev
 
-# Debug mode
+# Start in Debug Mode
 npm run start:debug
 
-# Build for production
+# Compile TypeScript to ./dist
 npm run build
 
-# Run compiled production build
+# Run the compiled production build
 npm run start:prod
 ```
 
-Once started, the server listens at: `http://localhost:3000`
+### Useful Nest CLI Scaffolding Commands
+```bash
+# Generate a new feature module
+npx nest g module <module-name>
+
+# Generate a new controller
+npx nest g controller <controller-name>
+
+# Generate a new service / provider
+npx nest g service <service-name>
+```
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Testing with `@nestjs/testing`
+
+The project utilizes `@nestjs/testing` together with **Vitest** and **Supertest** to execute isolated and E2E tests:
 
 ```bash
-# Run unit tests (Vitest)
+# Run unit tests
 npm run test
 
 # Run unit tests in watch mode
 npm run test:watch
 
-# Run end-to-end (E2E) tests
+# Run End-to-End (E2E) integration tests
 npm run test:e2e
 
 # Generate test coverage report
 npm run test:cov
-
-# Lint source files
-npm run lint
 ```
+
+*Note: The test suite in `test/app.e2e-spec.ts` verifies middleware token interception, 401 guard responses, and successful JWT issuance.*
 
 ---
 
-## 📂 Folder Structure (`src/`)
+## 📡 API Reference & Testing Guide
 
-```text
-src/
-├── auth/
-│   ├── auth.controller.ts      # Handles POST /login and GET /auth
-│   ├── auth.middleware.ts      # Verifies Bearer JWT token on protected routes
-│   ├── auth.module.ts          # Configures JwtModule and exports AuthMiddleware
-│   └── auth.service.ts         # Validates user credentials & issues JWT tokens
-├── app.controller.spec.ts      # Unit tests for AppController
-├── app.controller.ts           # Handles GET / ("Hello World!")
-├── app.module.ts               # Root module & MiddlewareConsumer configuration
-├── app.service.ts              # Root service logic
-└── main.ts                     # Application entry point (listens on port 3000)
-```
+**Base Server URL:** `http://localhost:3000`
 
----
+### Endpoints Specification
 
-## 📡 API Documentation (Postman Guide)
-
-**Base URL:** `http://localhost:3000`
-
-### Endpoints Overview
-
-| Method | Endpoint | Protected (`AuthMiddleware`) | Description |
+| Method | Route | Middleware Protection | Description |
 | :--- | :--- | :---: | :--- |
-| `POST` | `/login` | ❌ No | Authenticate user and issue a JWT token. |
-| `GET` | `/auth` | ✅ Bearer Token | Verify JWT token and return decoded user info. |
-| `GET` | `/` | ✅ Bearer Token | Return `"Hello World!"` if token is valid. |
+| `POST` | `/login` (or `/`) | ❌ None | Validates `userName` & MD5 `password`, returns signed JWT. |
+| `GET` | `/auth` | 🛡️ `AuthMiddleware` | Decodes Bearer token and returns authenticated user payload. |
+| `GET` | `/` | 🛡️ `AuthMiddleware` | Protected root route returning `"Hello World!"`. |
 
-### 1. Login to Get JWT Token (`POST /login`)
+---
 
+### Step-by-Step API Verification
+
+#### 1. Authentication (`POST /login` or `POST /`)
+Send credentials to obtain a signed JWT:
+- **URL:** `http://localhost:3000/login`
+- **Method:** `POST`
 - **Headers:** `Content-Type: application/json`
-- **Body (raw JSON):** *(Default account: `admin` / MD5 of `admin`)*
+- **Body:**
 ```json
 {
   "userName": "admin",
@@ -174,12 +207,14 @@ src/
 ```json
 {
   "message": "Đăng nhập thành công",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwic3ViIjoxLCJpYXQiOjE3NTkxMjc..."
 }
 ```
 
-### 2. Verify Token (`GET /auth`)
-
+#### 2. Token Verification (`GET /auth`)
+Provide the Bearer token in the `Authorization` header:
+- **URL:** `http://localhost:3000/auth`
+- **Method:** `GET`
 - **Headers:** `Authorization: Bearer <your-jwt-token>`
 - **Response (`200 OK`):**
 ```json
@@ -188,24 +223,24 @@ src/
   "user": {
     "userName": "admin",
     "sub": 1,
-    "iat": 1759125600,
-    "exp": 1759129200
+    "iat": 1759127000,
+    "exp": 1759130600
   }
 }
 ```
 
-### 3. Access Protected Hello World (`GET /`)
-
+#### 3. Access Protected Route (`GET /`)
+- **URL:** `http://localhost:3000/`
+- **Method:** `GET`
 - **Headers:** `Authorization: Bearer <your-jwt-token>`
 - **Response (`200 OK`):**
 ```text
 Hello World!
 ```
-*(Returns `401 Unauthorized` if the `Authorization` header is missing or invalid).*
+*(If the `Authorization` header is missing or invalid, `AuthMiddleware` returns `401 Unauthorized`).*
 
 ---
 
-## 👨‍💻 Author & License
+##  License
 
-- **Team:** StudyMate Team — Service-Oriented Architecture (SOA) Course
-- **License:** This project is **UNLICENSED** and intended for educational purposes.
+This project is developed with the **NestJS** framework for educational purposes and is **UNLICENSED**.

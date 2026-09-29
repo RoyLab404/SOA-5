@@ -5,7 +5,7 @@ import { AuthService } from './auth.service.js';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // API Đăng nhập (hỗ trợ cả POST / theo đề bài và POST /login)
+  // API Đăng nhập (POST /login)
   @Post(['', 'login'])
   @HttpCode(HttpStatus.OK)
   login(@Body() body: any) {
