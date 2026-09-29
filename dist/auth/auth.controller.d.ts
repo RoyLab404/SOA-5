@@ -2,12 +2,12 @@ import { AuthService } from './auth.service.js';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
-    login(body: any): {
+    login(body: Record<string, any>): Promise<{
         message: string;
-        token: string;
-    };
-    checkAuth(req: any): {
+        access_token: string;
+    }>;
+    verifyToken(authHeader: string): Promise<{
         message: string;
-        user: any;
-    };
+        payload: any;
+    }>;
 }

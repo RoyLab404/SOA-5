@@ -1,18 +1,21 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
-import { AuthMiddleware } from './auth.middleware.js';
+import { JwtModule } from '@nestjs/jwt';
+import { User } from './user.entity.js';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([User]),
     JwtModule.register({
-      secret: 'secret-key-12345', // Chuỗi bí mật dùng để sign token (trong thực tế nên dùng biến môi trường)
+      global: true,
+      secret: 'my-secret-key-for-jwt-2026', // Trong thực tế lấy từ biến môi trường
       signOptions: { expiresIn: '1h' },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthMiddleware],
-  exports: [JwtModule, AuthMiddleware], // Export để AppModule có thể sử dụng
+  providers: [AuthService],
+  exports: [AuthService, JwtModule]
 })
 export class AuthModule {}

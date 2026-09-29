@@ -5,20 +5,30 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Module, RequestMethod } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
-import { AuthMiddleware } from './auth/auth.middleware.js';
+import { TokenMiddleware } from './auth/token.middleware.js';
+import { User } from './auth/user.entity.js';
 let AppModule = class AppModule {
     configure(consumer) {
         consumer
-            .apply(AuthMiddleware)
-            .forRoutes({ path: '/', method: RequestMethod.GET }, { path: 'auth', method: RequestMethod.ALL });
+            .apply(TokenMiddleware)
+            .forRoutes({ path: '/', method: RequestMethod.GET });
     }
 };
 AppModule = __decorate([
     Module({
-        imports: [AuthModule],
+        imports: [
+            TypeOrmModule.forRoot({
+                type: 'better-sqlite3',
+                database: 'database.sqlite',
+                entities: [User],
+                synchronize: true,
+            }),
+            AuthModule,
+        ],
         controllers: [AppController],
         providers: [AppService],
     })

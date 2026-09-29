@@ -7,35 +7,71 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Injectable } from '@nestjs/common';
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-const users = [
-    {
-        IdUser: 1,
-        UserName: 'admin',
-        Password: '21232f297a57a5a743894a0e4a801fc3',
-        Token: '',
-    },
-];
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './user.entity.js';
 let AuthService = class AuthService {
     jwtService;
-    constructor(jwtService) {
+    userRepository;
+    constructor(jwtService, userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
-    login(userName, passwordHash) {
-        const user = users.find((u) => u.UserName === userName && u.Password === passwordHash);
-        if (user) {
-            const payload = { userName: user.UserName, sub: user.IdUser };
-            const token = this.jwtService.sign(payload);
-            user.Token = token;
-            return token;
+    async onModuleInit() {
+        const count = await this.userRepository.count();
+        if (count === 0) {
+            const defaultUser = this.userRepository.create({
+                UserName: 'admin',
+                Password: 'admin',
+            });
+            await this.userRepository.save(defaultUser);
+            console.log('Đã tạo user mặc định: admin / admin');
         }
-        return null;
+    }
+    async login(userName, passwordBase64OrMd5) {
+        let decodedPassword = passwordBase64OrMd5;
+        try {
+            decodedPassword = Buffer.from(passwordBase64OrMd5, 'base64').toString('utf-8');
+        }
+        catch (e) { }
+        const user = await this.userRepository.findOne({
+            where: [
+                { UserName: userName, Password: passwordBase64OrMd5 },
+                { UserName: userName, Password: decodedPassword }
+            ]
+        });
+        if (!user) {
+            throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+        }
+        const payload = { sub: user.IdUser, username: user.UserName };
+        const accessToken = await this.jwtService.signAsync(payload);
+        user.Token = accessToken;
+        await this.userRepository.save(user);
+        return {
+            message: 'Đăng nhập thành công',
+            access_token: accessToken,
+        };
+    }
+    async verifyToken(token) {
+        try {
+            const payload = await this.jwtService.verifyAsync(token);
+            return { message: 'Token hợp lệ', payload };
+        }
+        catch (e) {
+            throw new UnauthorizedException('Token không hợp lệ');
+        }
     }
 };
 AuthService = __decorate([
     Injectable(),
-    __metadata("design:paramtypes", [JwtService])
+    __param(1, InjectRepository(User)),
+    __metadata("design:paramtypes", [JwtService,
+        Repository])
 ], AuthService);
 export { AuthService };
 //# sourceMappingURL=auth.service.js.map

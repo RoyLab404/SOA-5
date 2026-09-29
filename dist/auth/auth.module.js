@@ -5,23 +5,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
-import { AuthMiddleware } from './auth.middleware.js';
+import { JwtModule } from '@nestjs/jwt';
+import { User } from './user.entity.js';
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
     Module({
         imports: [
+            TypeOrmModule.forFeature([User]),
             JwtModule.register({
-                secret: 'secret-key-12345',
+                global: true,
+                secret: 'my-secret-key-for-jwt-2026',
                 signOptions: { expiresIn: '1h' },
             }),
         ],
         controllers: [AuthController],
-        providers: [AuthService, AuthMiddleware],
-        exports: [JwtModule, AuthMiddleware],
+        providers: [AuthService],
+        exports: [AuthService, JwtModule]
     })
 ], AuthModule);
 export { AuthModule };

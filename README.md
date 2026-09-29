@@ -1,192 +1,114 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="NestJS Logo" /></a>
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-<h1 align="center">NestJS RESTful API — StudyMate Service</h1>
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-<p align="center">
-  A robust and scalable server-side application engineered with <b>NestJS</b>, <b>TypeScript</b>, and <b>RESTful Architecture</b>.<br/>
-  Featuring <b>Dependency Injection</b>, <b>Modular Design</b>, <b>Custom Middleware</b>, and <b>JWT Security</b>.
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
 </p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-<p align="center">
-  <img src="https://img.shields.io/badge/NestJS-v12.0-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" alt="NestJS Version" />
-  <img src="https://img.shields.io/badge/TypeScript-v6.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Node.js-%3E%3D22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Auth-JWT_Bearer-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT Auth" />
-  <img src="https://img.shields.io/badge/Testing-Vitest_%26_Supertest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest" />
-</p>
+## Description
 
----
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-## 🏛️ NestJS Architecture & Core Concepts
-
-This project is built from the ground up leveraging the foundational pillars of the **NestJS** framework:
-
-```text
-Incoming Request
-      │
-      ▼
-┌───────────────────────────────┐
-│        AuthMiddleware         │  ◄── Implements NestMiddleware (verifies Bearer JWT)
-└──────────────┬────────────────┘
-               │
-               ▼
-┌───────────────────────────────┐
-│          Controllers          │  ◄── Declarative Routing (@Controller, @Get, @Post, @Body)
-│ (AppController / AuthController)
-└──────────────┬────────────────┘
-               │ (Dependency Injection via IoC Container)
-               ▼
-┌───────────────────────────────┐
-│      Providers / Services     │  ◄── Business Logic (@Injectable: AuthService, AppService)
-│   (AuthService / AppService)  │
-└──────────────┬────────────────┘
-               │
-               ▼
-┌───────────────────────────────┐
-│        External Modules       │  ◄── Dynamic Module Registration (JwtModule.register())
-│          (JwtModule)          │
-└───────────────────────────────┘
-```
-
-### 1. Modules (`@Module`)
-- **`AppModule`**: The root module that orchestrates application dependencies and manages the global HTTP request lifecycle via `NestModule` and `MiddlewareConsumer`.
-- **`AuthModule`**: A feature module encapsulating authentication concerns, registering the dynamic `JwtModule`, and exporting `JwtModule` and `AuthMiddleware` for consumption across the app.
-
-### 2. Controllers & Routing (`@Controller`)
-- **`AppController`**: Exposes the root health check route (`GET /`).
-- **`AuthController`**: Declarative routing for user credentials verification (`POST /login` and `POST /`) and identity inspection (`GET /auth` & `POST /auth`).
-
-### 3. Providers & Dependency Injection (`@Injectable`)
-- Implements Inversion of Control (IoC). Dependencies like `JwtService` and `AuthService` are injected via class constructors, ensuring low coupling and high testability.
-
-### 4. Custom Middleware (`NestMiddleware`)
-- **`AuthMiddleware`**: Intercepts requests, validates the `Authorization: Bearer <token>` header against the secret key using `JwtService.verify()`, and injects the decoded payload into `req['user']`.
-- Configured conditionally in `AppModule.configure()` using `consumer.apply(AuthMiddleware).forRoutes(...)`.
-
-### 5. Built-in Exception Handling
-- Throws standard NestJS HTTP exceptions (`UnauthorizedException`) mapped directly to appropriate HTTP status codes (`401 Unauthorized`) with standardized error JSON schemas.
-
----
-
-## 📦 NestJS Ecosystem & Packages
-
-| Package | Purpose in Project |
-| :--- | :--- |
-| **`@nestjs/core`** | NestJS core runtime, IoC container, and application lifecycle engine |
-| **`@nestjs/common`** | Decorators (`@Module`, `@Controller`, `@Injectable`, `@Post`, `@Get`), HTTP abstractions, and exceptions |
-| **`@nestjs/platform-express`** | Default HTTP adapter binding NestJS with Express |
-| **`@nestjs/jwt`** | Official NestJS JWT utility wrapper around `jsonwebtoken` for signing and verifying tokens |
-| **`@nestjs/cli`** | Command-line interface for scaffolding, building, and serving the app |
-| **`@nestjs/testing`** | Utilities for bootstrapping isolated module fixtures during unit & E2E tests |
-
----
-
-##  Project Structure (`src/`)
-
-```text
-src/
-├── auth/                         # Feature Module: Authentication & JWT Security
-│   ├── auth.controller.ts        # Route handlers for login & token introspection
-│   ├── auth.middleware.ts        # Custom NestMiddleware verifying Bearer JWT
-│   ├── auth.module.ts            # Nest module importing dynamic JwtModule
-│   └── auth.service.ts           # Injectable provider handling credential checks & token signing
-├── app.controller.spec.ts        # Unit test fixture for AppController
-├── app.controller.ts             # Root controller exposing GET /
-├── app.module.ts                 # Root module configuring MiddlewareConsumer
-├── app.service.ts                # Injectable root service
-└── main.ts                       # Application bootstrapper via NestFactory.create()
-```
-
----
-
-## ⚙️ Prerequisites & Setup
-
-### Requirements
-- **Node.js**: `>= 22.22.3` or `>= 24.x`
-- **npm**: `>= 10.x`
-
-### Installation
-```bash
-# Clone the repository
-git clone <your-repository-url>
-cd Project
-
-# Install dependencies using npm
-npm install
-```
-
----
-
-## 🚀 NestJS CLI Commands
-
-### Development & Execution
-```bash
-# Start the NestJS application
-npm run start
-
-# Start with Watch Mode (Hot-reload enabled via Nest CLI)
-npm run start:dev
-
-# Start in Debug Mode
-npm run start:debug
-
-# Compile TypeScript to ./dist
-npm run build
-
-# Run the compiled production build
-npm run start:prod
-```
-
-### Useful Nest CLI Scaffolding Commands
-```bash
-# Generate a new feature module
-npx nest g module <module-name>
-
-# Generate a new controller
-npx nest g controller <controller-name>
-
-# Generate a new service / provider
-npx nest g service <service-name>
-```
-
----
-
-## 🧪 Testing with `@nestjs/testing`
-
-The project utilizes `@nestjs/testing` together with **Vitest** and **Supertest** to execute isolated and E2E tests:
+## Project setup
 
 ```bash
-# Run unit tests
-npm run test
-
-# Run unit tests in watch mode
-npm run test:watch
-
-# Run End-to-End (E2E) integration tests
-npm run test:e2e
-
-# Generate test coverage report
-npm run test:cov
+$ npm install
 ```
 
-*Note: The test suite in `test/app.e2e-spec.ts` verifies middleware token interception, 401 guard responses, and successful JWT issuance.*
+## Compile and run the project
 
----
+```bash
+# development
+$ npm run start
 
-## 📡 API Endpoints Reference
+# watch mode
+$ npm run start:dev
 
-**Base Server URL:** `http://localhost:3000`
+# production mode
+$ npm run start:prod
+```
 
-| Method | Endpoint | Authorization | Request Body / Note |
-| :--- | :--- | :---: | :--- |
-| `POST` | `/login` *(or `/`)* | None | `{ "userName": "admin", "password": "..." }` → Returns `{ token }` |
-| `GET` | `/auth` | `Bearer <token>` | Verifies JWT & returns decoded payload `{ user }` |
-| `GET` | `/` | `Bearer <token>` | Returns `"Hello World!"` *(401 Unauthorized if token missing)* |
+## Run tests
 
----
+```bash
+# unit tests
+$ npm run test
 
-## 📄 License
+# e2e tests
+$ npm run test:e2e
 
-This project is developed with the **NestJS** framework for educational purposes and is **UNLICENSED**.
+# test coverage
+$ npm run test:cov
+```
+
+## Deployment
+
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ npm install -g @nestjs/mau
+$ mau deploy
+```
+
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+
+## Observability
+
+In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
+
+[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
+
+- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
+- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
+- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
+- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
+- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
+- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
+- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
+- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
+
+## Resources
+
+Check out a few resources that may come in handy when working with NestJS:
+
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Support
+
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+
+## Stay in touch
+
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
+
+## License
+
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

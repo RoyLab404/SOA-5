@@ -1,31 +1,29 @@
-import { Controller, Post, Body, All, Req, UnauthorizedException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // API Đăng nhập (POST /login)
-  @Post(['', 'login'])
-  @HttpCode(HttpStatus.OK)
-  login(@Body() body: any) {
-    const { userName, password } = body || {};
-    const token = this.authService.login(userName, password);
-    if (!token) {
-      throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+  // POST localhost:3000/
+  // Để đăng nhập như mô tả: Url: localhost:****/
+  @Post()
+  login(@Body() body: Record<string, any>) {
+    const { userName, password } = body;
+    if (!userName || !password) {
+      throw new UnauthorizedException('Thiếu userName hoặc password');
     }
-    return {
-      message: 'Đăng nhập thành công',
-      token,
-    };
+    return this.authService.login(userName, password);
   }
 
-  // API xác thực token (localhost:****/auth)
-  @All('auth')
-  checkAuth(@Req() req: any) {
-    return {
-      message: 'Xác thực token thành công',
-      user: req['user'], // Được gán từ middleware
-    };
+  // GET localhost:3000/auth
+  // Xây dựng API xác thực token localhost:****/auth
+  @Get('auth')
+  verifyToken(@Headers('authorization') authHeader: string) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Thiếu token hoặc sai định dạng');
+    }
+    const token = authHeader.split(' ')[1];
+    return this.authService.verifyToken(token);
   }
 }

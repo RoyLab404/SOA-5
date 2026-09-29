@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-import { Controller, Post, Body, All, Req, UnauthorizedException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Headers, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 let AuthController = class AuthController {
     authService;
@@ -18,38 +18,34 @@ let AuthController = class AuthController {
         this.authService = authService;
     }
     login(body) {
-        const { userName, password } = body || {};
-        const token = this.authService.login(userName, password);
-        if (!token) {
-            throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
+        const { userName, password } = body;
+        if (!userName || !password) {
+            throw new UnauthorizedException('Thiếu userName hoặc password');
         }
-        return {
-            message: 'Đăng nhập thành công',
-            token,
-        };
+        return this.authService.login(userName, password);
     }
-    checkAuth(req) {
-        return {
-            message: 'Xác thực token thành công',
-            user: req['user'],
-        };
+    verifyToken(authHeader) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            throw new UnauthorizedException('Thiếu token hoặc sai định dạng');
+        }
+        const token = authHeader.split(' ')[1];
+        return this.authService.verifyToken(token);
     }
 };
 __decorate([
-    Post(['', 'login']),
-    HttpCode(HttpStatus.OK),
+    Post(),
     __param(0, Body()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "login", null);
 __decorate([
-    All('auth'),
-    __param(0, Req()),
+    Get('auth'),
+    __param(0, Headers('authorization')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
-], AuthController.prototype, "checkAuth", null);
+], AuthController.prototype, "verifyToken", null);
 AuthController = __decorate([
     Controller(),
     __metadata("design:paramtypes", [AuthService])
