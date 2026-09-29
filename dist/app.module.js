@@ -13,7 +13,7 @@ let AppModule = class AppModule {
     configure(consumer) {
         consumer
             .apply(AuthMiddleware)
-            .forRoutes({ path: '/', method: RequestMethod.GET }, { path: 'auth', method: RequestMethod.GET });
+            .forRoutes({ path: '/', method: RequestMethod.GET }, { path: 'auth', method: RequestMethod.ALL });
     }
 };
 AppModule = __decorate([

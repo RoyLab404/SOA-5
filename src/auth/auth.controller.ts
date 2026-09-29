@@ -1,15 +1,15 @@
-import { Controller, Post, Body, Get, Req, UnauthorizedException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, All, Req, UnauthorizedException, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 
 @Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // API Đăng nhập
-  @Post('login')
+  // API Đăng nhập (hỗ trợ cả POST / theo đề bài và POST /login)
+  @Post(['', 'login'])
   @HttpCode(HttpStatus.OK)
   login(@Body() body: any) {
-    const { userName, password } = body;
+    const { userName, password } = body || {};
     const token = this.authService.login(userName, password);
     if (!token) {
       throw new UnauthorizedException('Sai tài khoản hoặc mật khẩu');
@@ -20,8 +20,8 @@ export class AuthController {
     };
   }
 
-  // API xác thực token
-  @Get('auth')
+  // API xác thực token (localhost:****/auth)
+  @All('auth')
   checkAuth(@Req() req: any) {
     return {
       message: 'Xác thực token thành công',
