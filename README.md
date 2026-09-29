@@ -175,72 +175,18 @@ npm run test:cov
 
 ---
 
-## 📡 API Reference & Testing Guide
+## 📡 API Endpoints Reference
 
 **Base Server URL:** `http://localhost:3000`
 
-### Endpoints Specification
-
-| Method | Route | Middleware Protection | Description |
+| Method | Endpoint | Authorization | Request Body / Note |
 | :--- | :--- | :---: | :--- |
-| `POST` | `/login` (or `/`) | ❌ None | Validates `userName` & MD5 `password`, returns signed JWT. |
-| `GET` | `/auth` | 🛡️ `AuthMiddleware` | Decodes Bearer token and returns authenticated user payload. |
-| `GET` | `/` | 🛡️ `AuthMiddleware` | Protected root route returning `"Hello World!"`. |
+| `POST` | `/login` *(or `/`)* | None | `{ "userName": "admin", "password": "..." }` → Returns `{ token }` |
+| `GET` | `/auth` | `Bearer <token>` | Verifies JWT & returns decoded payload `{ user }` |
+| `GET` | `/` | `Bearer <token>` | Returns `"Hello World!"` *(401 Unauthorized if token missing)* |
 
 ---
 
-### Step-by-Step API Verification
-
-#### 1. Authentication (`POST /login` or `POST /`)
-Send credentials to obtain a signed JWT:
-- **URL:** `http://localhost:3000/login`
-- **Method:** `POST`
-- **Headers:** `Content-Type: application/json`
-- **Body:**
-```json
-{
-  "userName": "admin",
-  "password": "21232f297a57a5a743894a0e4a801fc3"
-}
-```
-- **Response (`200 OK`):**
-```json
-{
-  "message": "Đăng nhập thành công",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwic3ViIjoxLCJpYXQiOjE3NTkxMjc..."
-}
-```
-
-#### 2. Token Verification (`GET /auth`)
-Provide the Bearer token in the `Authorization` header:
-- **URL:** `http://localhost:3000/auth`
-- **Method:** `GET`
-- **Headers:** `Authorization: Bearer <your-jwt-token>`
-- **Response (`200 OK`):**
-```json
-{
-  "message": "Xác thực token thành công",
-  "user": {
-    "userName": "admin",
-    "sub": 1,
-    "iat": 1759127000,
-    "exp": 1759130600
-  }
-}
-```
-
-#### 3. Access Protected Route (`GET /`)
-- **URL:** `http://localhost:3000/`
-- **Method:** `GET`
-- **Headers:** `Authorization: Bearer <your-jwt-token>`
-- **Response (`200 OK`):**
-```text
-Hello World!
-```
-*(If the `Authorization` header is missing or invalid, `AuthMiddleware` returns `401 Unauthorized`).*
-
----
-
-##  License
+## 📄 License
 
 This project is developed with the **NestJS** framework for educational purposes and is **UNLICENSED**.
