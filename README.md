@@ -1,114 +1,182 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# BÁO CÁO BÀI THỰC HÀNH SỐ 3
+## XÂY DỰNG DỊCH VỤ QUẢN LÝ SẢN PHẨM (PRODUCT SERVICE) TRONG HỆ THỐNG SOA
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+**Sinh viên thực hiện:** Huỳnh Ngọc Khang  
+**MSSV:** 4651050116  
+**Lớp:** K46D - Nhóm 5  
+**Môn học:** Phát triển phần mềm hướng dịch vụ (SOA)  
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 1. Mục tiêu bài thực hành
+- Thiết kế và xây dựng **Dịch vụ Quản lý Sản phẩm (Product Service)** độc lập theo nguyên lý kiến trúc hướng dịch vụ (Service-Oriented Architecture - SOA).
+- Triển khai dịch vụ chạy trên cổng mạng và cơ sở dữ liệu hoàn toàn tách biệt với dịch vụ xác thực (Auth Service ở Bài thực hành số 2).
+- Tích hợp bảo mật tập trung: Dịch vụ sản phẩm không lưu trữ khóa bí mật JWT hay tài khoản người dùng, mà ủy thác việc xác thực token bằng cách gọi HTTP API sang Dịch vụ xác thực.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## 2. Công nghệ sử dụng
+- **Framework Backend:** NestJS (TypeScript)
+- **Cơ sở dữ liệu:** MySQL (kết nối qua TypeORM)
+- **Thư viện tích hợp:** `@nestjs/axios` (gọi HTTP liên dịch vụ), `class-validator`, `class-transformer`
+- **Công cụ kiểm thử & tài liệu:** Postman
 
-```bash
-$ npm install
+---
+
+## 3. Kiến trúc và Tính độc lập của dịch vụ (SOA Principles)
+
+Hệ thống được tổ chức thành 2 dịch vụ độc lập phân tán:
+
+| Thuộc tính | Dịch vụ Xác thực (Bài thực hành 2) | Dịch vụ Sản phẩm (Bài thực hành 3) |
+| :--- | :--- | :--- |
+| **Cổng lắng nghe (Port)** | `3000` | `3001` (cấu hình qua `.env`) |
+| **Cơ sở dữ liệu** | Database người dùng (`auth_db` / `user`) | `product_db` (bảng `products`) |
+| **Nhiệm vụ chính** | Đăng nhập, mã hóa mật khẩu, sinh & xác thực JWT | CRUD quản lý sản phẩm, lọc & tìm kiếm |
+| **Cơ chế giao tiếp** | Cung cấp API `GET /auth` hoặc `POST /auth` | Gọi HTTP Request sang cổng 3000 qua `AuthMiddleware` |
+
+---
+
+## 4. Thiết kế Cơ sở dữ liệu (`product_db`)
+
+Cấu trúc bảng `products` (chi tiết tại [`database/product_db.sql`](database/product_db.sql)):
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+| :--- | :--- | :--- | :--- |
+| `id` | `INT` | PRIMARY KEY, AUTO_INCREMENT | Mã định danh duy nhất của sản phẩm |
+| `name` | `VARCHAR(255)` | NOT NULL | Tên sản phẩm |
+| `category` | `VARCHAR(100)` | NOT NULL, DEFAULT 'Phụ kiện' | Phân loại danh mục sản phẩm |
+| `description` | `TEXT` | NULL | Thông tin mô tả chi tiết sản phẩm |
+| `price` | `DECIMAL(10, 2)` | NOT NULL | Giá bán sản phẩm |
+| `quantity` | `INT` | NOT NULL, DEFAULT 0 | Số lượng tồn kho |
+| `created_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Thời điểm tạo sản phẩm |
+| `updated_at` | `TIMESTAMP` | ON UPDATE CURRENT_TIMESTAMP | Thời điểm cập nhật gần nhất |
+
+---
+
+## 5. Danh sách RESTful API
+
+Tất cả các API dưới đây đều được bảo vệ bởi `AuthMiddleware` và yêu cầu header:  
+`Authorization: Bearer <access_token>`
+
+| STT | Phương thức | Đường dẫn API | Chức năng | Dữ liệu đầu vào / Query |
+| :---: | :---: | :--- | :--- | :--- |
+| 1 | `POST` | `/products` | Thêm mới sản phẩm | Body JSON (`name`, `category`, `price`, `quantity`,...) |
+| 2 | `GET` | `/products` | Lấy danh sách sản phẩm | Hỗ trợ `?search=...` (tên) và `?category=...` |
+| 3 | `GET` | `/products/:id` | Xem thông tin chi tiết | `id` (số nguyên) |
+| 4 | `PUT` | `/products/:id` | Cập nhật thông tin | `id` và Body JSON các trường cần cập nhật |
+| 5 | `DELETE` | `/products/:id` | Xóa sản phẩm khỏi hệ thống | `id` (số nguyên) |
+
+---
+
+## 6. Cơ chế Xác thực Phân tán (`AuthMiddleware`)
+
+`AuthMiddleware` (`src/auth/auth.middleware.ts`) được gắn chặn trước tất cả các endpoint của `ProductController`:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client as Client / Postman
+    participant ProductService as Product Service (:3001)
+    participant AuthMiddleware as AuthMiddleware
+    participant AuthService as Auth Service (:3000)
+    participant MySQL as MySQL (:3306)
+
+    Client->>ProductService: Gửi Request (kèm Authorization: Bearer token)
+    ProductService->>AuthMiddleware: Bắt chặn Request
+    alt Không có Header Authorization
+        AuthMiddleware-->>Client: 401 Unauthorized (Thiếu token)
+    else Có token
+        AuthMiddleware->>AuthService: Gọi HTTP POST/GET :3000/auth
+        alt Token không hợp lệ / hết hạn
+            AuthService-->>AuthMiddleware: 401 Unauthorized
+            AuthMiddleware-->>Client: 401 Unauthorized
+        else AuthService không hoạt động
+            AuthMiddleware-->>Client: 503 Service Unavailable
+        else Token hợp lệ
+            AuthService-->>AuthMiddleware: 200 OK (Payload User)
+            AuthMiddleware->>ProductService: Chuyển tiếp tới Controller
+            ProductService->>MySQL: Thực hiện truy vấn CRUD
+            MySQL-->>ProductService: Dữ liệu
+            ProductService-->>Client: Trả về kết quả (200 / 201)
+        end
+    end
 ```
 
-## Compile and run the project
+---
 
+## 7. Kết quả kiểm thử với Postman
+
+| STT | Kịch bản kiểm thử | Dữ liệu kiểm thử | Kết quả kỳ vọng | Kết quả thực tế |
+| :---: | :--- | :--- | :---: | :---: |
+| 1 | `POST /products` hợp lệ | Có token, Body đúng format | `201 Created` | Đạt |
+| 2 | `GET /products` lấy tất cả | Có token | `200 OK` | Đạt |
+| 3 | `GET /products?search=Dell` | Tìm kiếm theo từ khóa | `200 OK` (Lọc đúng) | Đạt |
+| 4 | `GET /products/:id` hợp lệ | `id = 1`, có token | `200 OK` | Đạt |
+| 5 | `PUT /products/:id` | Cập nhật giá & số lượng | `200 OK` | Đạt |
+| 6 | `DELETE /products/:id` | Xóa sản phẩm theo ID | `200 OK` | Đạt |
+| 7 | Gọi API khi không có Token | Không gửi Header Authorization | `401 Unauthorized` | Đạt |
+| 8 | Gọi API với Token không hợp lệ | Header: `Bearer token_sai` | `401 Unauthorized` | Đạt |
+| 9 | `GET /products/9999` (ID không tồn tại) | ID không có trong cơ sở dữ liệu | `404 Not Found` | Đạt |
+| 10 | `POST /products` với giá âm (`price: -10`) | Dữ liệu không thỏa ValidationPipe | `400 Bad Request` | Đạt |
+
+### Ảnh chụp màn hình minh chứng:
+*(Lưu ảnh chụp từ Postman vào thư mục `docs/` theo tên bên dưới)*
+
+#### 1. Thêm mới sản phẩm (`POST /products`):
+![01. Thêm sản phẩm](docs/01-create-product.png)
+
+#### 2. Lấy danh sách sản phẩm (`GET /products`):
+![02. Danh sách sản phẩm](docs/02-get-products.png)
+
+#### 3. Xem chi tiết sản phẩm (`GET /products/1`):
+![03. Chi tiết sản phẩm](docs/03-get-detail.png)
+
+#### 4. Cập nhật sản phẩm (`PUT /products/1`):
+![04. Cập nhật sản phẩm](docs/04-update-product.png)
+
+#### 5. Xóa sản phẩm (`DELETE /products/1`):
+![05. Xóa sản phẩm](docs/05-delete-product.png)
+
+#### 6. Chặn truy cập khi không có Token (`401 Unauthorized`):
+![06. Không có token](docs/06-no-token.png)
+
+---
+
+## 8. Hướng dẫn cài đặt và khởi chạy
+
+### Bước 1: Khởi tạo Cơ sở dữ liệu
+Chạy script [`database/product_db.sql`](database/product_db.sql) trong MySQL (qua MySQL CLI, phpMyAdmin, hoặc DBeaver) để tạo database `product_db` và bảng `products`.
+
+### Bước 2: Cài đặt thư viện
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+### Bước 3: Cấu hình biến môi trường
+Tạo file `.env` từ file mẫu `.env.example`:
+```env
+PORT=3001
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASS=
+DB_NAME=product_db
+AUTH_URL=http://localhost:3000
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+### Bước 4: Khởi chạy dịch vụ
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Chế độ phát triển (auto-reload)
+npm run start:dev
+
+# Hoặc chế độ thường
+npm start
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 9. Kết luận
+Dịch vụ Quản lý Sản phẩm đã đáp ứng trọn vẹn các yêu cầu của Bài thực hành số 3:
+1. Đảm bảo tính độc lập: chạy riêng trên cổng `3001` với cơ sở dữ liệu `product_db`.
+2. Đầy đủ 5 thao tác CRUD chuẩn RESTful API có xác thực dữ liệu đầu vào.
+3. Tích hợp xác thực phân tán mượt mà thông qua `AuthMiddleware` gọi dịch vụ xác thực ở Bài 2.
