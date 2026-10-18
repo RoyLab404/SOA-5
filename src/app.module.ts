@@ -1,28 +1,26 @@
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
-import { AuthModule } from './auth/auth.module.js';
-import { TokenMiddleware } from './auth/token.middleware.js';
-import { User } from './auth/user.entity.js';
+import { ProductModule } from './product/product.module';
+import { Product } from './product/product.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'better-sqlite3',
-      database: 'database.sqlite',
-      entities: [User],
-      synchronize: true, // Auto create table based on entity
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (c: ConfigService) => ({
+        type: 'mysql',
+        host: c.get('DB_HOST'),
+        port: +c.get('DB_PORT', '3306'),
+        username: c.get('DB_USER'),
+        password: c.get('DB_PASS'),
+        database: c.get('DB_NAME'),
+        entities: [Product],
+        synchronize: false,
+      }),
     }),
-    AuthModule,
+    ProductModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TokenMiddleware)
-      .forRoutes({ path: '/', method: RequestMethod.GET }); // Áp dụng cho API in dòng "Hello World" ở bài thực hành số 1
-  }
-}
+export class AppModule {}
