@@ -120,24 +120,27 @@ sequenceDiagram
 | 10 | `POST /products` với giá âm (`price: -10`) | Dữ liệu không thỏa ValidationPipe | `400 Bad Request` | Đạt |
 
 ### Ảnh chụp màn hình minh chứng:
-*(Lưu ảnh chụp từ Postman vào thư mục `docs/` theo tên bên dưới)*
 
-#### 1. Thêm mới sản phẩm (`POST /products`):
+#### 1. Đăng nhập lấy JWT Token từ Auth Service (`POST :3000`):
+![00. Đăng nhập lấy token](docs/00-login-success.png)
+
+#### 2. Thêm mới sản phẩm (`POST /products`):
 ![01. Thêm sản phẩm](docs/01-create-product.png)
 
-#### 2. Lấy danh sách sản phẩm (`GET /products`):
+#### 3. Lấy danh sách sản phẩm (`GET /products`):
 ![02. Danh sách sản phẩm](docs/02-get-products.png)
+![02. Chi tiết danh sách có sản phẩm mới](docs/02-get-products-list.png)
 
-#### 3. Xem chi tiết sản phẩm (`GET /products/1`):
+#### 4. Xem chi tiết sản phẩm (`GET /products/1`):
 ![03. Chi tiết sản phẩm](docs/03-get-detail.png)
 
-#### 4. Cập nhật sản phẩm (`PUT /products/1`):
+#### 5. Cập nhật sản phẩm (`PUT /products/1`):
 ![04. Cập nhật sản phẩm](docs/04-update-product.png)
 
-#### 5. Xóa sản phẩm (`DELETE /products/1`):
+#### 6. Xóa sản phẩm (`DELETE /products/1`):
 ![05. Xóa sản phẩm](docs/05-delete-product.png)
 
-#### 6. Chặn truy cập khi không có Token (`401 Unauthorized`):
+#### 7. Chặn truy cập khi không có Token (`401 Unauthorized`):
 ![06. Không có token](docs/06-no-token.png)
 
 ---
@@ -145,7 +148,7 @@ sequenceDiagram
 ## 8. Hướng dẫn cài đặt và khởi chạy
 
 ### Bước 1: Khởi tạo Cơ sở dữ liệu
-Chạy script [`database/product_db.sql`](database/product_db.sql) trong MySQL (qua MySQL CLI, phpMyAdmin, hoặc DBeaver) để tạo database `product_db` và bảng `products`.
+Chạy script [`database/product.sql`](database/product.sql) trong MySQL (qua MySQL CLI, phpMyAdmin, hoặc DBeaver) để tạo database `product_db` và bảng `products`.
 
 ### Bước 2: Cài đặt thư viện
 ```bash

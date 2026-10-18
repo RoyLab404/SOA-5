@@ -1,7 +1,6 @@
 -- =============================================================================
 -- HỌ VÀ TÊN: HUỲNH NGỌC KHANG
 -- MSSV: 4651050116 - LỚP K46D - NHÓM 5
--- BÀI THỰC HÀNH SỐ 3: XÂY DỰNG DỊCH VỤ QUẢN LÝ SẢN PHẨM (PRODUCT SERVICE)
 -- =============================================================================
 
 CREATE DATABASE IF NOT EXISTS product_db 
